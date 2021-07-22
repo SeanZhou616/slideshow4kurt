@@ -15,6 +15,7 @@ HEIGHT = 1080
 
 import time
 import vlc
+import Xlib
 
 
 class Player:
@@ -199,19 +200,37 @@ def combine(img):
 
 def process():
     screen = screeninfo.get_monitors()[0]
-    path = "/home/seanzhou/Pictures"
+    path = "/media/pi/Pictures"
+    counter = 0
     filenames = []
+    filenames_display = []
+    filenames_pics = []
+    filenames_pics_display = []
+    filenames_videos = []
+    filenames_videos_display = []
     filename_last = ""
     
     for root, dirs, files in os.walk(path):
-        filenames.extend(os.path.join(root, names) for names in files)
-    if len(filenames) == 0:
+        if files.endswith(pictures):
+            filenames_pics.extend(os.path.join(root, names) for names in files)
+            filenames_pics_display.extend(files)
+        elif files.endswith(videos):
+            filenames_videos.extend(os.path.join(root, names) for names in files)
+            filenames_videos_display.extend(files)
+        #filenames.extend(os.path.join(root, names) for names in files)
+        #filenames_display.extend(files)
+    if len(filenames_pics) == 0 and len(filenames_videos) == 0:
         return
 
     prev_image = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
     bkgd_image = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
     while True:
-        filename = random.choice(filenames)
+        counter = counter + 1
+        if counter < 20:
+            choice
+        choice = random.choice(list(enumerate(filenames)))[0]
+        filename = filenames[choice]
+        filename_display = filenames_display[choice]
         if filename == filename_last:
             continue
         if filename.endswith(pictures):
@@ -219,12 +238,12 @@ def process():
             img = cv2.imread(filename)
             combine_array = combine(img)
 
-            for i in range(51):
-                alpha = i/50
+            for i in range(21):
+                alpha = i/20
                 beta = 1.0 - alpha
-                length = len(filename)
+                length = len(filename_display)
                 cv2.rectangle(combine_array, (0, 1030), (length * 20, 950), (0, 0, 0), -1)
-                cv2.putText(combine_array, filename, (30, 1000), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.putText(combine_array, filename_display, (30, 1000), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 dst = cv2.addWeighted(combine_array, alpha, prev_image, beta, 0.0)
                 
 
@@ -247,12 +266,12 @@ def process():
             ret, img = cap.read()
             combine_array = combine(img)
 
-            for i in range(51):
-                alpha = i/50
+            for i in range(21):
+                alpha = i/20
                 beta = 1.0 - alpha
-                length = len(filename)
+                length = len(filename_display)
                 cv2.rectangle(combine_array, (0, 1030), (length * 20, 950), (0, 0, 0), -1)
-                cv2.putText(combine_array, filename, (30, 1000), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.putText(combine_array, filename_display, (30, 1000), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 dst = cv2.addWeighted(combine_array, alpha, prev_image, beta, 0.0)
                 
 
@@ -266,8 +285,10 @@ def process():
 
             if cv2.waitKey(1000) == ord('q'):
                 return
-
-            video_player = Player()
+            
+            #Xlib.XInitThreads()
+            #video_player = vlc.MediaPlayer(filename, "--no-xlib")
+            video_player = Player("--no-xlib, --vebose=0")
             time.sleep(0.1)
             video_player.fullscreen()
             time.sleep(0.1)
