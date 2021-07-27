@@ -12,8 +12,8 @@ videos = tuple(videos)
 
 WIDTH = 1920
 HEIGHT = 1080
-PIC_CYCLE = 0
-PIC_DEALY = 1000
+PIC_CYCLE = 20
+PIC_DELAY = 1000
 VIDEO_COVER_DELAY = 1000
 
 import time
@@ -100,7 +100,7 @@ def combine(img):
 
 def process():
     screen = screeninfo.get_monitors()[0]
-    path = "/home/seanzhou/Pictures"
+    path = "/media/pi/Pictures"
     counter = 0
     filenames_pics = []
     filenames_pics_display = []
@@ -132,6 +132,7 @@ def process():
             choice = random.choice(list(enumerate(filenames_videos)))[0]
             filename = filenames_videos[choice]
             filename_display = filenames_videos_display[choice]
+            counter = 0
 
         if filename == filename_last:
             continue
@@ -185,9 +186,8 @@ def process():
             if cv2.waitKey(VIDEO_COVER_DELAY) == ord('q'):
                 return
             
-            # player = OMXPlayer(filename, 
-            #     dbus_name='org.mpris.MediaPlayer2.omxplayer',
-            #     args='-w -y -r -b --no-osd --aspect-mode letterbox')
+           # player = OMXPlayer(filename,
+           #         args="--win '0, 0, 1920, 1080'")
             player = OMXPlayer(filename)
 
             while not player.can_play():
@@ -195,11 +195,7 @@ def process():
             
             player.play_sync()
 
-            while not player.can_quit():
-                pass
-
-            player.quit()
-            time.sleep(0.05)
+            time.sleep(1)
    
             cv2.imshow(window_name, combine_array)
             if cv2.waitKey(500) == ord('q'):
@@ -207,9 +203,12 @@ def process():
             cap.release()
 
         filename_last = filename
+while True:
+    try:
+        process()
 
-try:
-    process()
+    except dbus.exceptions.DBusException:
+        pass
 
-except KeyboardInterrupt:
-    pass
+    except KeyboardInterrupt:
+        break
